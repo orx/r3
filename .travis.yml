@@ -14,6 +14,15 @@ language: c
 
 matrix:
     include: 
+        # Emscripten js, release
+        #
+        - os: linux
+          dist: trusty #gcc on Ubuntu 12.04 does not support sanitizers
+          sudo: false #Force new container-based infrastructure.
+          language: c
+          env: OS_ID=0.99.1 DEBUG=none STANDARD=c RIGOROUS=no STATIC=yes FFI="no"
+
+    exclude:
         # Android5, debug, gcc
         #
         - os: linux
@@ -169,8 +178,19 @@ script:
           ls -dl $PWD/android-ndk-r13
           export TOOLS=$ANDROID_NDK/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-
           export EXTRA_CC_FLAGS="--sysroot=$ANDROID_NDK/platforms/android-19/arch-arm"
-      fi
-      if [[ ${OS_ID} = "0.3.40" || ${OS_ID} = "0.3.1" ]]; then
+      elif [[ ${OS_ID} = "0.99.1" || ${OS_ID} = "0.99.2" ]]; then
+          wget https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz
+          tar xf emsdk-portable.tar.gz
+          cd emsdk-portable
+          ./emsdk update
+          ./emsdk install latest > emsdk.log 2> emsdk.error.log
+          ./emsdk activate latest
+          source ./emsdk_env.sh
+          ln -s emcc gcc
+          cd ${TOP_DIR}/make/
+          cp r3-make r3-make.js
+          cp r3-make r3-make.html
+      elif [[ ${OS_ID} = "0.3.40" || ${OS_ID} = "0.3.1" ]]; then
           # Use prebuilt binaries
           if [[ ${OS_ID} = "0.3.40" ]]; then
               export PKG_CONFIG_PATH=${TOP_DIR}/external/ffi-prebuilt/lib64/pkgconfig
@@ -421,6 +441,10 @@ script:
     - |
       if [[ -e "r3.exe" ]]; then
            mv r3.exe ${NEW_NAME}.exe;
+      elif [[ -e "r3.js" ]]; then
+           mv r3.js ${NEW_NAME}.js;
+      elif [[ -e "r3.html" ]]; then
+           mv r3.html ${NEW_NAME}.html;
       else
            mv r3 ${NEW_NAME};
       fi

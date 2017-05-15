@@ -352,7 +352,7 @@ CD?=} space (either flag? -SP [""] ["./"]) newline
 newline
 
 (
-    either symbols [
+    either any [symbols | flag? NOSTRIP] [
         ;
         ; Easier in the rules below to have something that just takes a
         ; filename than to actually conditionally use the strip commands.
@@ -383,7 +383,9 @@ newline
 
 newline
 
-{BIN_SUFFIX=} space (either flag? EXE [".exe"] [""]) newline
+{BIN_SUFFIX=} space (case [
+    flag? EXE [".exe"] flag? JS [".js"] flag? HTML [".html"] true [""]
+]) newline
 
 newline
 

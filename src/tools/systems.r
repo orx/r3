@@ -117,6 +117,9 @@ systems: [
 
     0.14.02     syllable-svr    linux
             [M32 LEN LLC HID LDL ST1 -LM LC211 F64]
+    ;-------------------------------------------------------------------------
+    0.99.01     emscripten    posix [LEN -LM LDL JS NOSTRIP]
+    0.99.02     emscripten    posix [LEN -LM LDL HTML NOSTRIP]
 ]
 
 compiler-flags: context [
@@ -214,6 +217,10 @@ other-flags: context [
     STX: "-x"
     CMT: "-R.comment"
     EXE: _                          ; use %.exe as binary file suffix
+    ; Emscripten flags:
+     JS: _                          ; use %.js as binary file suffix
+    HTML: _                         ; use %.html as binary file suffix
+    NOSTRIP: _                      ; skip strip, else for release build
 ]
 
 
