@@ -10,6 +10,7 @@ toolset: [
 
 extensions: [
     ;* UUID _
+    - ODBC _
 ]
 
 with-ffi: no

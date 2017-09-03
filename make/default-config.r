@@ -11,6 +11,7 @@ extensions: [
     ;[+|-|*] ext [modules]
     ;- uuid _
     ;* png _ ;[Lodepng]
+    - ODBC _
 ]
 
 ; use ./r3-make
