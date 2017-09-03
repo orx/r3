@@ -34,9 +34,9 @@ optimize: 2
 standard: 'c ;one of: 'c, 'gnu89, 'gnu99, 'c99, 'c11, 'c++, 'c++98, 'c++0x, 'c++11, 'c++14 or 'c++17
 rigorous: no
 
-static: no
+static: yes
 pkg-config: get-env "PKGCONFIG" ;path to pkg-config, or default
-with-ffi: 'dynamic
+with-ffi: no
 
 odbc-requires-ltdl: no
 

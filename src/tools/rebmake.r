@@ -1631,7 +1631,7 @@ Execution: make generator-class [
 visual-studio: make generator-class [
     solution-format-version: "12.00"
     tools-version: "15.00"
-    target-win-version: "10.0.10586.0"
+    target-win-version: "10.0.14393.0"
     platform-tool-set: "v141"
     platform: cpu: "x64"
     build-type: "Release"
