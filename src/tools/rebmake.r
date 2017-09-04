@@ -1983,7 +1983,7 @@ visual-studio: make generator-class [
       <InlineFunctionExpansion>} switch build-type ["debug" ["Disabled"] "release" ["AnySuitable"]] {</InlineFunctionExpansion>
       <Optimization>} find-optimization project/optimization {</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <RuntimeLibrary>MultiThreaded} if build-type = "debug" ["Debug"] {DLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded} if build-type = "debug" ["Debug"] {</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
       <TreatWarningAsError></TreatWarningAsError>
