@@ -27,8 +27,8 @@ atan: :arctangent/radians
 modulo: function [
     "Compute a remainder of A divided by B with the sign of B."
     a [any-number! money! time!]
-    b [any-number! money! time!]
-        "Must be nonzero."
+    b [any-number! money! time!] "Must be nonzero."
+    /adjusted "Set 'almost zero' and 'almost B' to zero"
 ][
     ; This function tries to find the remainder that is "almost non-negative"
     ; Example: 0.15 - 0.05 - 0.1 // 0.1 is negative,
@@ -37,11 +37,18 @@ modulo: function [
     ; Compute the smallest remainder with the same sign as b
     r: remainder a b
     if sign? r = negate sign? b [r: r + b]
-    ; Use abs a for comparisons
-    a: abs a
+    if not adjusted [return r]
+    if sign? a = negate sign? b [a: negate a]
     ; If r is "almost" b (i.e. negligible compared to b), the
-    ; result will be r - b. Otherwise the result will be r
-    either all [(a + r) = (a + b) | positive? (r + r) - b] [r - b] [r]
+    ; result will be 0. Otherwise the result will be r
+    if any [
+        a + r = a | b + r = b ; 'almost zero'
+        all [ ; 'almost b'
+            (a + r) = (a + b)
+            positive? (r + r) - b
+        ]
+    ] [return 0.0]
+    r
 ]
 
 mod: enfix tighten :modulo
