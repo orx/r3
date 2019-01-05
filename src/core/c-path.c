@@ -770,3 +770,148 @@ REBNATIVE(path_0)
     //
     return rebRun("divide", left, right, rebEND);
 }
+
+
+//
+//  PD_Path: C
+//
+// A PATH! is not an array, but if it is implemented as one it may choose to
+// dispatch path handling to its array.
+//
+REB_R PD_Path(
+    REBPVS *pvs,
+    const REBVAL *picker,
+    const REBVAL *opt_setval
+){
+    return PD_Array(pvs, picker, opt_setval);
+}
+
+
+//
+//  REBTYPE: C
+//
+// The concept of PATH! is now that it is an immediate value.  While it
+// permits picking and enumeration, it may or may not have an actual REBARR*
+// node backing it.
+//
+// !!! Changing the workings of path is experimental...but it is believed that
+// the old model for PATH! as isomorphic to GROUP! and BLOCK! was flawed.
+//
+REBTYPE(Path)
+{
+    REBVAL *path = D_ARG(1);
+
+    switch (VAL_WORD_SYM(verb)) {
+      case SYM_REFLECT: {
+        INCLUDE_PARAMS_OF_REFLECT;
+        UNUSED(ARG(value));
+
+        switch (VAL_WORD_SYM(ARG(property))) {
+          case SYM_LENGTH:
+            return Series_Common_Action_Maybe_Unhandled(frame_, verb);
+
+          // !!! Any other interesting reflectors?
+
+          case SYM_INDEX: // not legal, paths always at head, no index
+          default:
+            break;
+        }
+        break; }
+
+        // Since ANY-PATH! is immutable, a shallow copy should be cheap, but
+        // it should be cheap for any similarly marked array.  Also, a /DEEP
+        // copy of a path may copy groups that are mutable.
+        //
+      case SYM_COPY:
+        goto retrigger;
+    }
+
+    fail (Error_Illegal_Action(VAL_TYPE(path), verb));
+
+  retrigger:;
+
+    return T_Array(frame_, verb);
+}
+
+
+//
+//  MF_Path: C
+//
+void MF_Path(REB_MOLD *mo, const REBCEL *v, bool form)
+{
+    UNUSED(form);
+
+    // Routine may be called on value that reports REB_QUOTED, even if it
+    // has no additional payload and is aliasing the cell itself.  Checking
+    // the type could be avoided if each type had its own dispatcher, but
+    // this routine seems to need to be generic.
+    //
+    enum Reb_Kind kind = CELL_KIND(v);
+
+    if (kind == REB_GET_PATH)
+        Append_Utf8_Codepoint(mo->series, ':');
+
+    // !!! Convention changing, paths will never be less than 2 elements long.
+    //
+    if (VAL_LEN_AT(v) == 0)
+        Append_Utf8_Codepoint(mo->series, '/'); // 0-arity path is `/`
+    else {
+        Mold_Array_At(mo, VAL_ARRAY(v), VAL_INDEX(v), "/");
+        if (VAL_LEN_AT(v) == 1)
+            Append_Utf8_Codepoint(mo->series, '/'); // 1-arity path `foo/`
+    }
+
+    if (kind == REB_SET_PATH)
+        Append_Utf8_Codepoint(mo->series, ':');
+}
+
+
+//
+//  MAKE_Path: C
+//
+REB_R MAKE_Path(REBVAL *out, enum Reb_Kind kind, const REBVAL *arg) {
+    REB_R r = MAKE_Array(out, REB_BLOCK, arg);
+    if (r == R_THROWN)
+        return r;
+
+    assert(r == out);
+    assert(VAL_INDEX(out) == 0);
+    mutable_KIND_BYTE(out) = kind;
+    return out;
+}
+
+
+//
+//  TO_Path: C
+//
+REB_R TO_Path(REBVAL *out, enum Reb_Kind kind, const REBVAL *arg) {
+    REB_R r = TO_Array(out, REB_BLOCK, arg);
+    if (r == R_THROWN)
+        return r;
+
+    assert(r == out);
+    assert(VAL_INDEX(out) == 0);
+    mutable_KIND_BYTE(out) = kind;
+    return out;
+}
+
+
+//
+//  CT_Path: C
+//
+// "Compare Type" dispatcher for the following types: (list here to help
+// text searches)
+//
+//     CT_Set_Path()
+//     CT_Get_Path()
+//     CT_Lit_Path()
+//
+REBINT CT_Path(const REBCEL *a, const REBCEL *b, REBINT mode)
+{
+    REBINT num = Cmp_Array(a, b, mode == 1);
+    if (mode >= 0)
+        return (num == 0);
+    if (mode == -1)
+        return (num >= 0);
+    return (num > 0);
+}

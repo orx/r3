@@ -213,7 +213,7 @@ REB_R Compose_To_Stack_Core(
         const REBCEL *cell = VAL_UNESCAPED(f->value);
         enum Reb_Kind kind = CELL_KIND(cell); // notice `\\(...)`
 
-        if (not ANY_ARRAY_KIND(kind)) { // won't substitute/recurse
+        if (not ANY_ARRAY_OR_PATH_KIND(kind)) { // won't substitute/recurse
             DS_PUSH_RELVAL(f->value, specifier); // preserves newline flag
             continue;
         }

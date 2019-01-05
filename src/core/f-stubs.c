@@ -484,7 +484,7 @@ static REBCNT Part_Len_Core(
 // subsetted range and gives back a length to the end of that subset.
 //
 REBCNT Part_Len_May_Modify_Index(REBVAL *series, const REBVAL *limit) {
-    assert(ANY_SERIES(series));
+    assert(ANY_SERIES(series) or ANY_PATH(series));
     return Part_Len_Core(series, limit);
 }
 

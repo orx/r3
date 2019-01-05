@@ -2310,6 +2310,9 @@ REBNATIVE(parse)
 {
     INCLUDE_PARAMS_OF_PARSE;
 
+    if (not ANY_SERIES_KIND(CELL_KIND(VAL_UNESCAPED(ARG(input)))))
+        fail (Error_Invalid(ARG(input)));
+
     REBVAL *rules = ARG(rules);
 
     bool interrupted;

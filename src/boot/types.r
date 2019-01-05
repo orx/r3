@@ -36,7 +36,7 @@ REBOL [
     }
     Macros: {
         /*
-        ** ORDER-DEPENDENT TYPE MACROS, e.g. ANY_BLOCK_KIND() or IS_BINDABLE()
+        ** ORDER-DEPENDENT TYPE MACROS, e.g. ANY_ARRAY_KIND() or IS_BINDABLE()
         **
         ** These macros embed specific knowledge of the type ordering.  They
         ** are specified in %types.r, so anyone changing the order of types is
@@ -90,7 +90,7 @@ REBOL [
             ANY_SCALAR_KIND(KIND_BYTE(v))
 
         inline static bool ANY_SERIES_KIND(REBYTE k)
-           { return k >= REB_PATH and k <= REB_VECTOR; }
+           { return k >= REB_GROUP and k <= REB_VECTOR; }
 
         #define ANY_SERIES(v) \
             ANY_SERIES_KIND(KIND_BYTE(v))
@@ -107,8 +107,14 @@ REBOL [
         #define ANY_BINSTR(v) \
             ANY_BINSTR_KIND(KIND_BYTE(v))
 
-        inline static bool ANY_ARRAY_KIND(REBYTE k)
+        inline static bool ANY_ARRAY_OR_PATH_KIND(REBYTE k)
             { return k >= REB_PATH and k <= REB_BLOCK; }
+
+        #define ANY_ARRAY_OR_PATH(v) \
+            ANY_ARRAY_OR_PATH_KIND(KIND_BYTE(v))
+
+        inline static bool ANY_ARRAY_KIND(REBYTE k)
+            { return k == REB_GROUP or k == REB_BLOCK; }
 
         #define ANY_ARRAY(v) \
             ANY_ARRAY_KIND(KIND_BYTE(v))
@@ -201,11 +207,14 @@ issue       word        *       *       +       word
 ;
 quoted     quoted       +       +       -       quoted
 
+; ANY-PATH!, order matters (and contiguous with ANY-ARRAY below may matter?)
+;
+path        path        *       *       *       path
+set-path    path        *       *       *       path
+get-path    path        *       *       *       path
+
 ; ANY-ARRAY!, order matters (and contiguous with ANY-SERIES below matters!)
 ;
-path        array       *       *       *       [series path array]
-set-path    array       *       *       *       [series path array]
-get-path    array       *       *       *       [series path array]
 group       array       *       *       *       [series array]
 ; -- start of inert bindable types (that aren't refinement! and issue!)
 block       array       *       *       *       [series array]

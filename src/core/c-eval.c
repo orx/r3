@@ -69,7 +69,7 @@
     // created as well.  See also TOUCH_SERIES() and TOUCH_CELL().
     //
     //      *** DON'T COMMIT THIS v-- KEEP IT AT ZERO! ***
-    #define TICK_BREAKPOINT        0
+    #define TICK_BREAKPOINT        183156
     //      *** DON'T COMMIT THIS --^ KEEP IT AT ZERO! ***
     //
     // Note also there is `Dump_Frame_Location()` if there's a trouble spot

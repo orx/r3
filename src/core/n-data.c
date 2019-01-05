@@ -205,7 +205,7 @@ REBNATIVE(bind)
         return Quotify(D_OUT, num_quotes);
     }
 
-    if (not ANY_ARRAY(v))
+    if (not ANY_ARRAY_OR_PATH(v))
         fail (Error_Invalid(v)); // QUOTED! could have been any type
 
     RELVAL *at;
@@ -1069,11 +1069,11 @@ REBNATIVE(free_q)
 //
 //  as: native [
 //
-//  {Aliases underlying data of one series to act as another of same class}
+//  {Aliases underlying data of one value to act as another of same class}
 //
-//      return: [<opt> any-series! any-word! quoted!]
+//      return: [<opt> any-path! any-series! any-word! quoted!]
 //      type [datatype! quoted!]
-//      value [<blank> any-series! any-word! quoted!]
+//      value [<blank> any-path! any-series! any-word! quoted!]
 //  ]
 //
 REBNATIVE(as)
@@ -1082,7 +1082,7 @@ REBNATIVE(as)
 
     REBVAL *v = ARG(value);
     Dequotify(v); // number of incoming quotes not relevant
-    if (not ANY_SERIES(v) and not ANY_WORD(v))
+    if (not ANY_SERIES(v) and not ANY_WORD(v) and not ANY_PATH(v))
         fail (Error_Invalid(v));
 
     REBVAL *t = ARG(type);
@@ -1092,16 +1092,29 @@ REBNATIVE(as)
         fail (Error_Invalid(t));
 
     enum Reb_Kind new_kind = VAL_TYPE_KIND(t);
+    if (new_kind == VAL_TYPE(v))
+        RETURN (Quotify(v, quotes)); // just may change quotes
 
     switch (new_kind) {
+        //
+        // !!! Technically speaking, AS could repurpose paths and blocks or
+        // groups to each other, if there's an array underlying the path.
+        // The immutability requirements get involved, so doing so would
+        // mean once a path were aliased to a block/group or vice versa there
+        // would be no changes allowed after that.  Compression techniques
+        // which may allow paths to overlay in value cells for `/a` or `/`
+        // would also need to be reviewed.
+
       case REB_BLOCK:
       case REB_GROUP:
+        if (not ANY_ARRAY(v))
+            goto bad_cast;
+        break;
+
       case REB_PATH:
       case REB_GET_PATH:
-        if (new_kind == VAL_TYPE(v))
-            RETURN (Quotify(v, quotes)); // just may change quotes
-
-        if (not ANY_ARRAY(v))
+      case REB_SET_PATH:
+        if (not ANY_PATH(v))
             goto bad_cast;
         break;
 
@@ -1110,9 +1123,7 @@ REBNATIVE(as)
       case REB_FILE:
       case REB_URL:
       case REB_EMAIL: {
-        if (new_kind == VAL_TYPE(v))
-            RETURN (Quotify(v, quotes)); // just may change quotes
-
+        //
         // !!! Until UTF-8 Everywhere, turning ANY-WORD! into an ANY-STRING!
         // means it has to be UTF-8 decoded into REBUNI (UCS-2).  We do that
         // but make sure it is locked, so that when it does give access to
@@ -1166,9 +1177,7 @@ REBNATIVE(as)
       case REB_SET_WORD:
       case REB_ISSUE:
       case REB_REFINEMENT: {
-        if (new_kind == VAL_TYPE(v))
-            RETURN (Quotify(v, quotes)); // just may change quotes
-
+        //
         // !!! Until UTF-8 Everywhere, turning ANY-STRING! into an ANY-WORD!
         // means you have to have an interning of it.
         //
@@ -1220,9 +1229,7 @@ REBNATIVE(as)
         break; }
 
       case REB_BINARY: {
-        if (new_kind == VAL_TYPE(v))
-            RETURN (Quotify(v, quotes)); // just may change quotes
-
+        //
         // !!! A locked BINARY! shouldn't (?) complain if it exposes a
         // REBSTR holding UTF-8 data, even prior to the UTF-8 conversion.
         //
@@ -1260,6 +1267,9 @@ REBNATIVE(as)
         fail (Error_Bad_Cast_Raw(v, ARG(type)));
     }
 
+    // Fallthrough for cases where changing the type byte and potentially
+    // updating the quotes is enough.
+    //
     Move_Value(D_OUT, v);
     mutable_KIND_BYTE(D_OUT) = new_kind;
     return Trust_Const(Quotify(D_OUT, quotes));
