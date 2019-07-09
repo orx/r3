@@ -8,7 +8,7 @@
 
 - One can cross-compile by specifying `OS_ID` (cf. `tools/systems.r` for a list of all options):
 
-  `./r3-make make.r OS_ID=0.4.4` -> will compile the Linux x86 version
+  `./r3-make make.r OS_ID: 0.4.4` -> will compile the Linux x86 version
 
 ## Windows
 
